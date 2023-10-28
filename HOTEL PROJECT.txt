@@ -1,0 +1,51 @@
+import sqlite3
+
+# Create a SQLite database
+conn = sqlite3.connect('hotel.db')
+cursor = conn.cursor()
+
+# Create tables for rooms and guests
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS rooms (
+        room_number INTEGER PRIMARY KEY,
+        room_type TEXT,
+        rate REAL,
+        is_available INTEGER
+    )
+''')
+
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS guests (
+        guest_id INTEGER PRIMARY KEY,
+        first_name TEXT,
+        last_name TEXT,
+        room_number INTEGER,
+        check_in_date DATE,
+        check_out_date DATE
+    )
+''')
+
+# Define functions for room and guest management
+def add_room(room_number, room_type, rate):
+    cursor.execute("INSERT INTO rooms VALUES (?, ?, ?, 1)", (room_number, room_type, rate))
+    conn.commit()
+
+def add_guest(first_name, last_name, room_number, check_in_date, check_out_date):
+    cursor.execute("INSERT INTO guests (first_name, last_name, room_number, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?)",
+                   (first_name, last_name, room_number, check_in_date, check_out_date))
+    cursor.execute("UPDATE rooms SET is_available = 0 WHERE room_number = ?", (room_number,))
+    conn.commit()
+
+def check_out_guest(guest_id):
+    cursor.execute("DELETE FROM guests WHERE guest_id = ?", (guest_id,))
+    conn.commit()
+
+# Implement additional functionality for reservation, billing, and reporting as needed.
+
+# Sample usage
+add_room(101, "Single", 100.0)
+add_room(102, "Double", 150.0)
+add_guest("John", "Doe", 101, "2023-10-28", "2023-10-30")
+
+# Close the database connection when done
+conn.close()
